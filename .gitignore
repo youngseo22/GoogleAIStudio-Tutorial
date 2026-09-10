@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Application Specific / Media & Cache
+transcripts/
+**/transcripts/
+downloads/
+**/downloads/
+*.wav
+*.mp3
+*.webm
+*.m4a
+*.ogg
+

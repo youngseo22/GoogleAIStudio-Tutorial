@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 유튜브 검색기 | Gemini 3.5 & 3.8 Flash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Top Navigation Header (YouTube Layout Style) -->
+  <header class="yt-header">
+    <div class="header-left">
+      <div class="yt-logo">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        <span class="yt-title">AI 유튜브 검색기</span>
+        <span class="yt-badge">AI</span>
+      </div>
+    </div>
+
+    <!-- Center Search Bar: Top YouTube Link Input (Requirement) -->
+    <div class="header-center">
+      <form id="url-search-form" class="yt-search-form">
+        <div class="search-input-wrapper">
+          <input
+            type="url"
+            id="youtube-url-input"
+            class="yt-search-input"
+            placeholder="유튜브 링크 주소를 입력하세요 (예: https://www.youtube.com/watch?v=...)"
+            required
+            autocomplete="off"
+          />
+          <button type="button" id="btn-paste-url" class="btn-paste" title="클립보드 붙여넣기">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+        <button type="submit" id="btn-search-url" class="yt-search-button" title="영상 검색 및 분석">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Header: Mike, Create, Notification buttons excluded per requirement -->
+    <div class="header-right">
+      <div class="ai-pill">
+        <span class="ai-dot"></span>
+        <span class="ai-pill-text">Gemini 3.5 & 3.8 Flash</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Container -->
+  <main class="yt-main-layout">
+    <!-- Left Column: Video Player, Custom Controls, Meta, Gemini 3.8 Q&A -->
+    <section class="left-stage">
+      <!-- Video Player Wrapper -->
+      <div class="video-container">
+        <div id="yt-player-placeholder" class="player-placeholder">
+          <div class="placeholder-content">
+            <div class="placeholder-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <h3>영상 링크를 검색창에 입력해주세요</h3>
+            <p>유튜브 링크를 입력하면 영상이 재생되고 AI가 타임스탬프와 대화형 검색을 준비합니다.</p>
+            <div class="sample-links">
+              <span>빠른 테스트:</span>
+              <button type="button" class="btn-sample" data-url="https://www.youtube.com/watch?v=jNQXAC9IVRw">최초의 유튜브 영상 (Me at the zoo)</button>
+              <button type="button" class="btn-sample" data-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Rick Astley 뮤직비디오</button>
+            </div>
+          </div>
+        </div>
+        <!-- Actual YouTube Player Wrapper -->
+        <div id="player-wrapper" class="player-wrapper hidden">
+          <div id="yt-player"></div>
+        </div>
+      </div>
+
+      <!-- Custom Player Control Bar (Audio Volume Control requirement) -->
+      <div class="player-controls-bar">
+        <div class="controls-left">
+          <button id="btn-toggle-play" class="ctrl-btn" title="재생/일시정지" disabled>
+            <svg id="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <svg id="icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </button>
+
+          <!-- Volume Controls (Requirement: 영상 출력에 음향 크기를 조절할 수 있게) -->
+          <div class="volume-control-group">
+            <button id="btn-mute" class="ctrl-btn" title="음소거/해제" disabled>
+              <svg id="icon-vol-high" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <svg id="icon-vol-muted" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            </button>
+            <input
+              type="range"
+              id="volume-slider"
+              class="volume-slider"
+              min="0"
+              max="100"
+              value="80"
+              title="음향 크기 조절"
+              disabled
+            />
+            <span id="volume-label" class="volume-label">80%</span>
+          </div>
+
+          <div class="time-display">
+            <span id="current-time">00:00</span> / <span id="total-duration">00:00</span>
+          </div>
+        </div>
+
+        <div class="controls-right">
+          <span id="ai-transcribe-status" class="status-chip">대기 중</span>
+        </div>
+      </div>
+
+      <!-- Video Meta Details -->
+      <div id="video-meta-section" class="video-meta hidden">
+        <h1 id="video-title" class="meta-title">영상 제목</h1>
+        <div class="meta-sub">
+          <span id="video-author" class="meta-author">채널명</span>
+          <span class="meta-divider">•</span>
+          <span id="video-duration-meta" class="meta-duration">00:00</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Specific Content Search & Interactive Timestamp Transcript -->
+    <aside class="right-sidebar">
+      <!-- Dual Mode Sidebar Card: Content Search & AI Q&A -->
+      <div class="sidebar-search-card">
+        <!-- Tab Selector: 내용 검색 vs AI 질의응답 -->
+        <div class="sidebar-mode-tabs">
+          <button type="button" id="tab-btn-search" class="mode-tab-btn active">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span>내용 검색</span>
+          </button>
+          <button type="button" id="tab-btn-ai" class="mode-tab-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="url(#tab-gemini-grad)"/>
+              <defs>
+                <linearGradient id="tab-gemini-grad" x1="2" y1="2" x2="22" y2="22">
+                  <stop stop-color="#4E8CFF"/>
+                  <stop offset="1" stop-color="#9C59FF"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span>AI 질의응답</span>
+            <span class="ai-tag-mini">Gemini 3.8</span>
+          </button>
+        </div>
+
+        <!-- Panel 1: Content Keyword Search Panel -->
+        <div id="panel-content-search" class="sidebar-tab-panel">
+          <div class="sidebar-header">
+            <span class="panel-subtitle">키워드로 영상 구간 찾기</span>
+            <span id="search-count" class="search-count-badge hidden">0개 일치</span>
+          </div>
+          <div class="content-search-input-box">
+            <svg class="search-icon-small" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              id="content-search-input"
+              class="content-search-input"
+              placeholder="단어/내용 검색 (예: 도입부, 원리, 결론...)"
+              disabled
+            />
+            <button type="button" id="btn-clear-search" class="btn-clear hidden" title="검색어 지우기">✕</button>
+          </div>
+          <p class="search-hint">💡 키워드를 입력하면 트랜스크립트에서 일치 구간을 찾아주며, 클릭 시 해당 시간으로 즉시 이동합니다.</p>
+        </div>
+
+        <!-- Panel 2: AI Q&A Panel (Gemini 3.8 Flash) -->
+        <div id="panel-ai-chat" class="sidebar-tab-panel hidden">
+          <div class="sidebar-header">
+            <span class="panel-subtitle">Gemini 3.8 Flash 영상 비서</span>
+            <span class="badge-gemini-model">3.8 Flash</span>
+          </div>
+          <!-- Quick Questions Chips -->
+          <div class="suggestion-chips-sidebar">
+            <button type="button" class="chip-btn-sm" data-query="이 영상의 핵심 내용을 3줄로 요약해줘.">📌 3줄 요약</button>
+            <button type="button" class="chip-btn-sm" data-query="영상에서 다루는 주요 타임라인과 토픽을 정리해줘.">⏱️ 타임라인</button>
+            <button type="button" class="chip-btn-sm" data-query="이 영상의 결론과 핵심 메시지는 뭐야?">💡 핵심 결론</button>
+          </div>
+          <!-- Sidebar Chat Messages -->
+          <div id="sidebar-chat-messages" class="sidebar-chat-messages">
+            <div class="chat-bubble ai-intro">
+              <p>🤖 영상 내용에 대해 궁금한 점을 질문하시면 <strong>Gemini 3.8 Flash</strong>가 관련 시간 위치([MM:SS])와 함께 답변해 드립니다.</p>
+            </div>
+          </div>
+          <!-- Sidebar Chat Input Form -->
+          <form id="sidebar-chat-form" class="sidebar-chat-input-form">
+            <input
+              type="text"
+              id="sidebar-chat-input"
+              class="sidebar-chat-input"
+              placeholder="영상 내용에 대해 질문하세요..."
+              disabled
+              autocomplete="off"
+            />
+            <button type="submit" id="btn-send-sidebar-chat" class="btn-send-sm" disabled title="질문 전송">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Transcript Timeline Container -->
+      <div class="transcript-card">
+        <div class="transcript-header">
+          <div class="transcript-title-area">
+            <h3>타임스탬프 트랜스크립트</h3>
+            <span class="badge-model-tag">Gemini 3.5 Transcribe</span>
+          </div>
+          <button id="btn-copy-transcript" class="btn-icon-text" title="전체 전사 복사" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>복사</span>
+          </button>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div id="transcribe-progress" class="transcribe-progress hidden">
+          <div class="progress-spinner"></div>
+          <span id="transcribe-status-text">오디오 다운로드 및 Gemini 3.5 전사 진행 중...</span>
+        </div>
+
+        <!-- Transcript List -->
+        <div id="transcript-list" class="transcript-list">
+          <div class="empty-transcript">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+            </svg>
+            <p>영상을 검색하면 타임스탬프와 문장 목록이 여기에 표시됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Global Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- YouTube IFrame API Script -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
