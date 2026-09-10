@@ -1,9 +1,7 @@
 # To run this code you need to install the following dependencies:
 # pip install google-genai
 
-import mimetypes
 import os
-import re
 import struct
 from dotenv import load_dotenv
 from google import genai
